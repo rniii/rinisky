@@ -1,0 +1,12 @@
+{
+  "name": "rinisky",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "esbuild": "^0.25.2"
+  }
+}
