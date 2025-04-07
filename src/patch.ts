@@ -5,13 +5,19 @@ import { _registerWreq } from "webpack";
 export * as api from "api";
 export * as webpack from "webpack";
 
-declare const VERSION: string;
-const consoleStyle = ["color:lightgreen", "color:currentColor"];
+export const log = (msg: string, ...args: any[]) =>
+  console.log("%crsky |%c " + msg, "color:lightgreen", "color:currentColor", ...args);
 
-console.log(`%crsky |%c loading v${VERSION}`, ...consoleStyle);
+log(`loading v${VERSION}`);
+
+if (new URLSearchParams(window.location.search).get("vanilla")) {
+  throw "nevermind";
+}
+
+declare const VERSION: string;
 
 interface Patch extends PatchDef {
-  query: string[];
+  query?: string[];
   patch: ReplacementDef[];
   applied?: boolean;
 }
@@ -22,12 +28,11 @@ interface Plugin extends PluginDef {
 
 export const plugins = [] as Plugin[];
 
-// initialize plugins
 for (const [i, plugin] of pluginDefs.entries()) {
   plugin.patches ??= [];
 
   for (const patch of plugin.patches) {
-    if (!Array.isArray(patch.query)) patch.query = [patch.query];
+    if (patch.query && !Array.isArray(patch.query)) patch.query = [patch.query];
     if (!Array.isArray(patch.patch)) patch.patch = [patch.patch];
 
     for (const p of patch.patch) {
@@ -47,7 +52,7 @@ for (const [i, plugin] of pluginDefs.entries()) {
 Object.defineProperty(Function.prototype, "m", {
   configurable: true,
   set(value) {
-    console.log("%crsky |%c got main chunk", ...consoleStyle);
+    log("got main chunk");
     // @ts-expect-error
     _registerWreq(window.wreq = this), delete Function.prototype.m;
 
@@ -82,9 +87,13 @@ const patchFactories = (factories: any) => {
     let code = Function.prototype.toString.call(factories[m]);
     let patchedBy = [] as string[];
 
+    const isMain = code.includes('.get("kawaii")');
+
+    if (isMain) log(`found main module: ${m}`);
+
     for (const plugin of plugins) {
       for (const patch of plugin.patches) {
-        if (!patch.query.every(m => code.includes(m))) continue;
+        if (isMain ? patch.query : !patch.query || patch.query.every(m => code.includes(m))) continue;
 
         if (patch.applied) {
           console.warn(`${plugin.name}: query is not unique: ${patch.query}`);
@@ -111,7 +120,7 @@ const patchFactories = (factories: any) => {
           + `//# sourceURL=Webpack${m}`,
       );
 
-      console.log(`%crsky |%c patched ${m}: ${patchedBy.join(", ")}`, ...consoleStyle);
+      log(`patched ${m}: ${patchedBy.join(", ")}`);
     } catch (e) {
       console.warn(e, { code });
     }

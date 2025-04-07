@@ -18,20 +18,28 @@ export let wreq: {
 
 export const _registerWreq = (value: typeof wreq) => wreq = value;
 
-export const getModule = (...filter: string[]) => {
+export const findModule = (...props: string[]) => {
   for (const id in wreq.c) {
     const m = wreq.c[id];
-    if (!m?.loaded || !m.exports) {
+    if (!m?.loaded || !m.exports || typeof m.exports != "object") {
       continue;
     }
 
-    if (filter.every(f => typeof m.exports == "object" && f in m.exports)) {
+    if (props.every(f => f in m.exports)) {
       return m.exports;
+    }
+
+    if (!m.exports.default || typeof m.exports.default != "object" && typeof m.exports.default != "function") {
+      continue;
+    }
+
+    if (props.every(f => f in m.exports.default)) {
+      return m.exports.default;
     }
   }
 };
 
-export const lazyModule = (...filter: string[]) => lazy(() => getModule(...filter));
+export const lazyModule = (...props: string[]) => lazy(() => findModule(...props));
 
 export const search = (...query: string[]) => {
   let results = [] as any[];

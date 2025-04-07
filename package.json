@@ -6,7 +6,9 @@
     "build": "node build.js"
   },
   "devDependencies": {
+    "@atproto/api": "^0.14.20",
     "@types/react": "^19.1.0",
-    "esbuild": "^0.25.2"
+    "esbuild": "^0.25.2",
+    "react-native": "^0.78.2"
   }
 }

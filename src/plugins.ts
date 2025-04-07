@@ -1,6 +1,9 @@
 import type { PluginDef } from "api";
-import pdsls from "plugins/pdsls";
+import betterTextInput from "plugins/betterTextInput";
+import core from "plugins/core";
 
 export const pluginDefs = [
-  pdsls,
+  core,
+
+  betterTextInput,
 ] as PluginDef[];
