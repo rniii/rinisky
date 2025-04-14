@@ -1,8 +1,12 @@
-// import { lazyModule } from "webpack";
+import { _export } from "fake-require";
 
-// export const StyleSheet = lazyModule("compose", "absoluteFillObject") as typeof import("react-native").StyleSheet;
-export const StyleSheet = {
-  create: ((styles: any): any => styles) as typeof import("react-native").StyleSheet.create,
+const ReactNative = {
+  StyleSheet: {
+    create: (styles: any): any => styles,
+  },
 };
 
-// export const { View } = lazyModule("View", "Text", "Image") as typeof import("react-native");
+// const StyleSheet = lazyModule("compose", "absoluteFillObject") as typeof import("react-native").StyleSheet;
+// const { View } = lazyModule("View", "Text", "Image") as typeof import("react-native");
+
+_export("react-native", ReactNative);

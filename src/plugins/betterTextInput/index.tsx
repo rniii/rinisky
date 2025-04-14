@@ -1,8 +1,9 @@
-import { define, re, withErrorBoundary } from "api";
-import type { FormEvent, KeyboardEvent } from "react";
-import { RichText } from "webpack/atproto-api";
-import { React } from "webpack/react";
-import { StyleSheet } from "webpack/react-native";
+import { RichText } from "@atproto/api";
+import { define, re } from "api";
+import type { ClipboardEvent, FormEvent, KeyboardEvent } from "react";
+import React from "react";
+import { StyleSheet } from "react-native";
+import { withErrorBoundary } from "utils";
 
 const style = StyleSheet.create({
   container: {
@@ -39,16 +40,16 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish }
   const input = React.useRef<HTMLElement>(null);
   const placeholder = React.useRef<HTMLElement>(null);
 
-  const onInput = React.useCallback((event: FormEvent) => {
-    const editor = event.currentTarget;
-
-    placeholder.current!.hidden = !!editor.textContent;
-
-    setRichText(new RichText({ text: editor.textContent || "" }));
-  }, [input, placeholder]);
-
   const onClick = React.useCallback(() => {
     input.current?.focus();
+  }, [input, placeholder]);
+
+  const onInput = React.useCallback((event: FormEvent) => {
+    const input = event.currentTarget;
+
+    placeholder.current!.hidden = !!input.textContent;
+
+    setRichText(new RichText({ text: input.textContent || "" }));
   }, [input, placeholder]);
 
   const onKeyDown = React.useCallback((event: KeyboardEvent) => {
@@ -58,9 +59,22 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish }
     }
   }, []);
 
+  const onPaste = React.useCallback((event: ClipboardEvent) => {
+    event.preventDefault();
+
+    const selection = getSelection();
+    if (!selection) return;
+
+    selection.deleteFromDocument();
+    selection.getRangeAt(0).insertNode(document.createTextNode(event.clipboardData.getData("text")));
+    selection.collapseToEnd();
+
+    placeholder.current!.hidden = !!input.current!.textContent;
+  }, []);
+
   return (
     <div style={style.container} onClick={onClick}>
-      <span onInput={onInput} onKeyDown={onKeyDown} contentEditable={true} ref={input} />
+      <span onInput={onInput} onKeyDown={onKeyDown} onPaste={onPaste} contentEditable={true} ref={input} />
       <span style={style.placeholder} ref={placeholder}>
         {placeholderText}
       </span>
@@ -72,7 +86,7 @@ export default define({
   name: "BetterTextInput",
   patches: [{
     patch: [{
-      match: re`(0,\i.jsx)(\i,\(\?={ref:\i,richtext:\i,placeholder:\i,\)`,
+      match: re`(0,\i.jsx)(\i,\(\?={ref:\i,style:\i,richtext:\i,placeholder:\i,\)`,
       replace: "$self.renderTextInput(",
     }],
   }],

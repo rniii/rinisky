@@ -1,5 +1,6 @@
+import { _export } from "fake-require";
 import { lazyModule } from "webpack";
 
-export const { RichText } = lazyModule("RichText", "RichTextSegment") as typeof import("@atproto/api");
+const atproto = lazyModule("RichText", "RichTextSegment");
 
-export type RichText = import("@atproto/api").RichText
+_export("@atproto/api", atproto);

@@ -1,6 +1,12 @@
+import { _export } from "fake-require";
 import { lazyModule } from "webpack";
 
-export const React = lazyModule("createElement", "Fragment") as typeof import("react");
+const React = {
+  Fragment: Symbol.for("react.fragment"), // can't be used lazily
+} as any;
 
-export const { createElement } = React;
-export const Fragment = /* @__PURE__ */ Symbol.for("react.fragment"); // can't be used lazily
+React.default = React;
+
+Object.setPrototypeOf(React, lazyModule("createElement", "Fragment"))
+
+_export("react", React);

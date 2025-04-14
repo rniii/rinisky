@@ -1,6 +1,3 @@
-import type { ComponentClass, CSSProperties, ErrorInfo, FunctionComponent, ReactNode } from "react";
-import { createElement, React } from "webpack/react";
-
 /**
  * Puts a function's result behind a lazy proxy.
  *
@@ -24,40 +21,6 @@ export const lazy = <T extends object>(get: () => T) => {
     apply: (_, that, args) => Reflect.apply(cached ??= get(), that, args),
     construct: (_, args) => Reflect.construct(cached ??= get(), args),
   });
-};
-
-export const lazyComponent = <P extends object>(get: () => ComponentClass<P>) => {
-  let cached: any;
-
-  return (props: P) => createElement(cached ??= get(), props) as ReactNode;
-};
-
-export const ErrorBoundary = lazyComponent(() =>
-  class extends React.Component<{ children: ReactNode }, { error?: string }> {
-    constructor(p: any) {
-      super(p);
-      this.state = {};
-    }
-
-    static getDerivedStateFromError(error: any) {
-      return { error };
-    }
-
-    componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-      console.error("Component error:", error);
-      console.error(errorInfo.componentStack);
-    }
-
-    render(): ReactNode {
-      return this.state.error
-        ? createElement("div", { title: this.state.error }, "Something went wrong :<")
-        : this.props.children;
-    }
-  }
-);
-
-export const withErrorBoundary = <P extends object>(component: FunctionComponent<P>) => {
-  return (props: P) => createElement(ErrorBoundary, null, createElement(component, props));
 };
 
 /**

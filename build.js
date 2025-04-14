@@ -1,7 +1,6 @@
 import { execSync } from "child_process";
 import { build } from "esbuild";
 import { context } from "esbuild";
-import { appendFile, readFile, unlink } from "fs/promises";
 
 const watch = process.argv.includes("--watch") || process.argv.includes("-w");
 
@@ -19,6 +18,11 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
   globalName: "rsky",
   entryPoints: ["src/patch.ts"],
   outfile: "dist/rsky.user.js",
+  external: [
+    "@atproto/api",
+    "react",
+    "react-native",
+  ],
   bundle: true,
   minifySyntax: true,
   minifyIdentifiers: false,
@@ -29,9 +33,6 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
   banner: { js: banner },
   footer: { js: ";window.rsky=rsky" },
   jsx: "transform",
-  jsxFactory: "createElement",
-  jsxFragment: "Fragment",
-  inject: ["src/webpack/react.ts"],
 });
 
 if (watch) {

@@ -1,3 +1,8 @@
+import "fake-require";
+import "webpack/atproto-api";
+import "webpack/react";
+import "webpack/react-native";
+
 import type { PatchDef, PluginDef, ReplacementDef } from "api";
 import { pluginDefs } from "plugins";
 import { _registerWreq } from "webpack";
