@@ -15,7 +15,11 @@ export let Text = ({ children, style }: { children: ReactNode; style: CSSPropert
 };
 
 export let InlineLinkText = ({ children, to }: { children: ReactNode; to: string }) => {
-  return <a href={to} target="_blank">{children}</a>;
+  return (
+    <a href={to} rel="noopener noreferrer" target="_blank">
+      {children}
+    </a>
+  );
 };
 
 export const useTheme = () => {

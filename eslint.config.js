@@ -8,6 +8,7 @@
 import js from "@eslint/js";
 import ts from "typescript-eslint";
 
+import hooks from "eslint-plugin-react-hooks";
 import simpleHeader from "eslint-plugin-simple-header";
 
 export default ts.config(
@@ -15,6 +16,7 @@ export default ts.config(
   js.configs.recommended,
   ts.configs.recommended,
   { rules: ts.configs.eslintRecommended.rules },
+  hooks.configs["recommended-latest"],
   {
     rules: {
       "no-constructor-return": "warn",

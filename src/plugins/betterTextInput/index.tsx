@@ -49,7 +49,7 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish, 
 
   const onClick = React.useCallback(() => {
     input.current?.focus();
-  }, [input, placeholder]);
+  }, [input]);
 
   const onInput = React.useCallback((event: FormEvent) => {
     const input = event.currentTarget;
@@ -57,14 +57,14 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish, 
     placeholder.current!.hidden = !!input.textContent;
 
     setRichText(new RichText({ text: input.textContent || "" }));
-  }, [input, placeholder]);
+  }, [placeholder, setRichText]);
 
   const onKeyDown = React.useCallback((event: KeyboardEvent) => {
     if ((event.metaKey || event.ctrlKey) && event.code === "Enter") {
       event.preventDefault();
       onPressPublish();
     }
-  }, []);
+  }, [onPressPublish]);
 
   const onPaste = React.useCallback((event: ClipboardEvent) => {
     event.preventDefault();
@@ -88,7 +88,7 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish, 
 
       placeholder.current!.hidden = !!input.current!.textContent;
     }
-  }, []);
+  }, [onPhotoPasted]);
 
   return (
     <div style={style.container} onClick={onClick}>
