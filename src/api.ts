@@ -30,7 +30,7 @@ export const lazy = <T extends object>(get: () => T) => {
 };
 
 /**
- * Makes regex for source code easier to read. Special characters (`.*+?^${([)|`) are used with
+ * Makes regex for source code easier to read. Special characters (`.*+?^${([])}|`) are used with
  * escapes instead (i.e. `\.\*`)
  *
  * \i is an alias for a regex that matches any JavaScript identifier
@@ -41,7 +41,7 @@ export const re = (template: TemplateStringsArray) => {
   const regex = new RegExp(
     raw
       .slice(flags?.[0].length)
-      .replace(/\\*[.*+?^${([)|]/g, (m) => m.length % 2 ? "\\" + m : m.slice(1))
+      .replace(/\\*[.*+?^${([\])}|]/g, (m) => m.length % 2 ? "\\" + m : m.slice(1))
       .replace(/\\i/g, "[A-Za-z_$][\\w$]*"),
     flags?.[1],
   );
@@ -79,6 +79,8 @@ export interface Plugin extends PluginDef {
 export const plugins = [] as Plugin[];
 
 export const definePlugin = <T extends PluginDef>(plugin: T & Record<string, any>) => {
+  // @ts-ignore
+  plugin.id = plugins.length;
   plugin.patches ??= [];
 
   for (const patch of plugin.patches) {
@@ -99,4 +101,10 @@ export const definePlugin = <T extends PluginDef>(plugin: T & Record<string, any
   plugins.push(plugin as any);
 
   return plugin as any as Plugin;
+};
+
+export const bskyManifest = {
+  version: "",
+  name: "",
+  slug: "",
 };

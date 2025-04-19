@@ -12,6 +12,7 @@ import path from "path";
 
 const watch = process.argv.includes("--watch") || process.argv.includes("-w");
 
+const fullHash = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
 const gitHash = execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
 const version = `${process.env.npm_package_version}+git.${gitHash}`;
 
@@ -19,6 +20,7 @@ const banner = `\
 // ==UserScript==
 // @name        rinisky
 // @match       https://bsky.app/*
+// @match       https://*.bsky.dev/*
 // @match       https://deer.social/*
 // @run-at      document-start
 // ==/UserScript==`;
@@ -35,14 +37,15 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
   bundle: true,
   minifySyntax: true,
   define: {
-    RSKY_COMMIT: JSON.stringify(gitHash),
+    RSKY_COMMIT: JSON.stringify(fullHash),
     RSKY_VERSION: JSON.stringify(version),
     window: "unsafeWindow",
   },
   banner: { js: banner },
   footer: { js: "window.rsky = rsky" },
   sourcemap: "linked",
-  jsx: "transform",
+  jsxImportSource: "react",
+  jsx: "automatic",
 
   plugins: [{
     name: "import-plugins",

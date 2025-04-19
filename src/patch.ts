@@ -20,12 +20,14 @@ import "fake-require";
 import "webpack/atproto-api";
 import "webpack/react";
 import "webpack/react-native";
+import "webpack/react-runtime";
 
 import "~plugins";
 
-import { plugins } from "api";
+import { bskyManifest, plugins } from "api";
 import { _registerWreq } from "webpack";
 
+export { plugins };
 export * as api from "api";
 export * as webpack from "webpack";
 
@@ -76,11 +78,17 @@ Object.defineProperty(Function.prototype, "m", {
 const patchFactories = (factories: any) => {
   for (const m in factories) {
     let code = Function.prototype.toString.call(factories[m]);
-    const patchedBy = [] as string[];
+    const patchedBy = new Set<string>();
 
     const isMain = code.includes('.get("kawaii")');
 
-    if (isMain) log(`found main module: ${m}`);
+    if (isMain) {
+      log(`found main module: ${m}`);
+
+      const [, version, name, slug] = code.match(/APP_MANIFEST:\{version:"(.*?)",name:"(.*?)",slug:"(.*?)"/) ?? [];
+
+      Object.assign(bskyManifest, { version, name, slug });
+    }
 
     for (const plugin of plugins) {
       for (const patch of plugin.patches) {
@@ -90,7 +98,7 @@ const patchFactories = (factories: any) => {
           console.warn(`${plugin.name}: query is not unique: ${patch.query}`);
         }
         patch.applied = true;
-        patchedBy.push(plugin.name);
+        patchedBy.add(plugin.name);
 
         for (const repl of patch.patch) {
           const oldCode = code;
@@ -102,16 +110,16 @@ const patchFactories = (factories: any) => {
       }
     }
 
-    if (!patchedBy.length) continue;
+    if (!patchedBy.size) continue;
 
     try {
       factories[m] = (0, eval)(
-        `// Patched by ${patchedBy.join(", ")}\n`
+        `// Patched by ${[...patchedBy].join(", ")}\n`
           + `0,${code}\n`
           + `//# sourceURL=webpack://Webpack${m}`,
       );
 
-      log(`patched ${m}: ${patchedBy.join(", ")}`);
+      log(`patched ${m}: ${[...patchedBy].join(", ")}`);
     } catch (e) {
       console.warn(e, { code });
     }

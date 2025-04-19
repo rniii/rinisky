@@ -20,3 +20,7 @@ Currently* the lazy-loaded chunks are not patched, but you can require dependenc
 they're loaded. For plugins changing the UI code when they are loaded is irrelevant.
 
 \* if it is necessary to patch a lazy chunk please let me know. I am just lazy as well.
+
+## How do I do things???
+
+I dont know, look around
