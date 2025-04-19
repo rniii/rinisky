@@ -1,8 +1,16 @@
+/*
+ * rinisky, a client mod for bluesky
+ * Copyright (c) 2025 rini and contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import { RichText } from "@atproto/api";
-import { define, re } from "api";
 import type { ClipboardEvent, FormEvent, KeyboardEvent } from "react";
 import React from "react";
 import { StyleSheet } from "react-native";
+
+import { definePlugin, re } from "api";
 import { withErrorBoundary } from "utils";
 
 const style = StyleSheet.create({
@@ -53,7 +61,7 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish }
   }, [input, placeholder]);
 
   const onKeyDown = React.useCallback((event: KeyboardEvent) => {
-    if ((event.metaKey || event.ctrlKey) && event.code == "Enter") {
+    if ((event.metaKey || event.ctrlKey) && event.code === "Enter") {
       event.preventDefault();
       onPressPublish();
     }
@@ -82,14 +90,16 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish }
   );
 };
 
-export default define({
+export default definePlugin({
   name: "BetterTextInput",
-  patches: [{
-    patch: [{
-      match: re`(0,\i.jsx)(\i,\(\?={ref:\i,style:\i,richtext:\i,placeholder:\i,\)`,
-      replace: "$self.renderTextInput(",
-    }],
-  }],
+  patches: [
+    {
+      patch: {
+        match: re`(0,\i.jsx)(\i,\(\?={ref:\i,style:\i,richtext:\i,placeholder:\i,\)`,
+        replace: "$self.renderTextInput(",
+      },
+    },
+  ],
 
   renderTextInput: withErrorBoundary(TextInput),
 });

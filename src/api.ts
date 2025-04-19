@@ -1,3 +1,10 @@
+/*
+ * rinisky, a client mod for bluesky
+ * Copyright (c) 2025 rini and contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 /**
  * Puts a function's result behind a lazy proxy.
  *
@@ -45,7 +52,7 @@ export const re = (template: TemplateStringsArray) => {
 
 export interface ReplacementDef {
   match: string | RegExp;
-  replace: string | Function;
+  replace: string | ((substring: string, ...args: any[]) => string);
 }
 
 export interface PatchDef {
@@ -59,4 +66,38 @@ export interface PluginDef {
   start?(): void;
 }
 
-export const define = <T extends PluginDef>(m: T & Record<string, any>) => m;
+export interface Patch extends PatchDef {
+  query?: string[];
+  patch: ReplacementDef[];
+  applied?: boolean;
+}
+
+export interface Plugin extends PluginDef {
+  id: number;
+  patches: Patch[];
+}
+
+export const plugins = [] as Plugin[];
+
+export const definePlugin = <T extends PluginDef>(plugin: T & Record<string, any>) => {
+  plugin.patches ??= [];
+
+  for (const patch of plugin.patches) {
+    if (patch.query && !Array.isArray(patch.query)) patch.query = [patch.query];
+    if (!Array.isArray(patch.patch)) patch.patch = [patch.patch];
+
+    for (const p of patch.patch) {
+      if (typeof p.replace == "string") {
+        p.replace = p.replace.replace("$self", `rsky.plugins[${plugin.id}]`);
+      } else {
+        const f = p.replace;
+        // @ts-ignore
+        p.replace = (...args: any[]) => f(...args).replace("$self", `rsky.plugins[${plugin.id}]`);
+      }
+    }
+  }
+
+  plugins.push(plugin as any);
+
+  return plugin as any as Plugin;
+};

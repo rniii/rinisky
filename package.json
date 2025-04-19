@@ -3,12 +3,20 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "node build.js"
+    "prepare": "git config --local core.hooksPath hooks",
+    "build": "node build.js",
+    "format": "dprint fmt",
+    "lint": "dprint check && eslint"
   },
   "devDependencies": {
     "@atproto/api": "^0.14.20",
+    "@eslint/js": "^9.25.0",
     "@types/react": "^19.1.0",
+    "dprint": "^0.49.1",
     "esbuild": "^0.25.2",
-    "react-native": "^0.78.2"
+    "eslint": "^9.25.0",
+    "eslint-plugin-simple-header": "^1.2.2",
+    "react-native": "^0.78.2",
+    "typescript-eslint": "^8.30.1"
   }
 }

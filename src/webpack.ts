@@ -1,3 +1,10 @@
+/*
+ * rinisky, a client mod for bluesky
+ * Copyright (c) 2025 rini and contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import { lazy } from "api";
 
 export interface WebpackFactory {
@@ -42,7 +49,7 @@ export const findModule = (...props: string[]) => {
 export const lazyModule = (...props: string[]) => lazy(() => findModule(...props));
 
 export const search = (...query: string[]) => {
-  let results = [] as any[];
+  const results = [] as any[];
 
   for (const id in wreq.m) {
     let code: string;

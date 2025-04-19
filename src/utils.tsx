@@ -1,3 +1,10 @@
+/*
+ * rinisky, a client mod for bluesky
+ * Copyright (c) 2025 rini and contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import "webpack/react";
 
 import type { ComponentClass, ErrorInfo, FunctionComponent, ReactNode } from "react";
@@ -44,4 +51,3 @@ export const withErrorBoundary = <P extends object>(Component: FunctionComponent
     </ErrorBoundary>
   );
 };
-

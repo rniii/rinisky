@@ -1,6 +1,15 @@
+/*
+ * rinisky, a client mod for bluesky
+ * Copyright (c) 2025 rini and contributors
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+// @ts-check
 import { execSync } from "child_process";
-import { build } from "esbuild";
-import { context } from "esbuild";
+import { build, context } from "esbuild";
+import { readdir } from "fs/promises";
+import path from "path";
 
 const watch = process.argv.includes("--watch") || process.argv.includes("-w");
 
@@ -11,6 +20,7 @@ const banner = `\
 // ==UserScript==
 // @name        rinisky
 // @match       https://bsky.app/*
+// @match       https://deer.social/*
 // @run-at      document-start
 // ==/UserScript==`;
 
@@ -25,14 +35,37 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
   ],
   bundle: true,
   minifySyntax: true,
-  minifyIdentifiers: false,
   define: {
-    VERSION: JSON.stringify(version),
+    RSKY_COMMIT: JSON.stringify(gitHash),
+    RSKY_VERSION: JSON.stringify(version),
     window: "unsafeWindow",
   },
   banner: { js: banner },
-  footer: { js: ";window.rsky=rsky" },
+  footer: { js: "window.rsky = rsky" },
+  sourcemap: "linked",
   jsx: "transform",
+
+  plugins: [{
+    name: "import-plugins",
+    setup(build) {
+      const filter = /^~plugins/;
+      const namespace = "import-plugins";
+
+      build.onResolve({ filter }, ({ path }) => ({ namespace, path }));
+
+      build.onLoad({ filter, namespace }, async () => {
+        let contents = "";
+
+        for (const dir of ["plugins", "userplugins"]) {
+          const files = await readdir(path.join("src", dir)).catch(() => []);
+
+          for (const file of files) contents += `import ${JSON.stringify(path.join(dir, file))};\n`;
+        }
+
+        return { contents, resolveDir: "./src" };
+      });
+    },
+  }],
 });
 
 if (watch) {

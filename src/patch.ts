@@ -1,63 +1,49 @@
+/*!
+ * rinisky, a client modification for the bluesky app
+ * Copyright (c) 2025 rini and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import "fake-require";
 import "webpack/atproto-api";
 import "webpack/react";
 import "webpack/react-native";
 
-import type { PatchDef, PluginDef, ReplacementDef } from "api";
-import { pluginDefs } from "plugins";
+import "~plugins";
+
+import { plugins } from "api";
 import { _registerWreq } from "webpack";
 
 export * as api from "api";
 export * as webpack from "webpack";
 
-export const log = (msg: string, ...args: any[]) =>
-  console.log("%crsky |%c " + msg, "color:lightgreen", "color:currentColor", ...args);
+const log = (msg: string, ...args: any[]) =>
+  console.log("%crsky |%c " + msg, "color:#0db", "color:currentColor", ...args);
 
-log(`loading v${VERSION}`);
+log(`loading v${RSKY_VERSION}`);
 
 if (new URLSearchParams(window.location.search).get("vanilla")) {
   throw "nevermind";
-}
-
-declare const VERSION: string;
-
-interface Patch extends PatchDef {
-  query?: string[];
-  patch: ReplacementDef[];
-  applied?: boolean;
-}
-
-interface Plugin extends PluginDef {
-  patches: Patch[];
-}
-
-export const plugins = [] as Plugin[];
-
-for (const [i, plugin] of pluginDefs.entries()) {
-  plugin.patches ??= [];
-
-  for (const patch of plugin.patches) {
-    if (patch.query && !Array.isArray(patch.query)) patch.query = [patch.query];
-    if (!Array.isArray(patch.patch)) patch.patch = [patch.patch];
-
-    for (const p of patch.patch) {
-      if (typeof p.replace == "string") {
-        p.replace = p.replace.replace("$self", `rsky.plugins[${i}]`);
-      } else {
-        const f = p.replace;
-        p.replace = (...args: any[]) => f(...args).replace("$self", `rsky.plugins[${i}]`);
-      }
-    }
-  }
-
-  plugins.push(plugin as Plugin);
 }
 
 // yay prototype pollution
 Object.defineProperty(Function.prototype, "m", {
   configurable: true,
   set(value) {
-    log("got main chunk");
+    console.trace("read if cute");
+
     // @ts-expect-error
     _registerWreq(window.wreq = this), delete Function.prototype.m;
 
@@ -90,7 +76,7 @@ Object.defineProperty(Function.prototype, "m", {
 const patchFactories = (factories: any) => {
   for (const m in factories) {
     let code = Function.prototype.toString.call(factories[m]);
-    let patchedBy = [] as string[];
+    const patchedBy = [] as string[];
 
     const isMain = code.includes('.get("kawaii")');
 
@@ -122,7 +108,7 @@ const patchFactories = (factories: any) => {
       factories[m] = (0, eval)(
         `// Patched by ${patchedBy.join(", ")}\n`
           + `0,${code}\n`
-          + `//# sourceURL=Webpack${m}`,
+          + `//# sourceURL=webpack://Webpack${m}`,
       );
 
       log(`patched ${m}: ${patchedBy.join(", ")}`);
