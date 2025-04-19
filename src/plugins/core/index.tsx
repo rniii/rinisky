@@ -4,28 +4,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { type CSSProperties, type ReactNode } from "react";
+import React from "react";
 
 import { bskyManifest, definePlugin, re } from "api";
+import { InlineLinkText, Text, useTheme } from "plugins/ui";
 import { withErrorBoundary } from "utils";
 
 const COMMIT_URL = (hash: string) => "https://github.com/rniii/rinisky/commit/" + hash;
-
-let Alf: any;
-
-let Text = ({ children, style }: { children: ReactNode; style: CSSProperties }): ReactNode => {
-  return <div style={style}>{children}</div>;
-};
-
-let InlineLinkText = ({ children, to }: { children: ReactNode; to: string }) => {
-  return <a href={to} target="_blank">{children}</a>;
-};
-
-const useTheme = () => {
-  const alf = React.useContext<any>(Alf);
-
-  return React.useMemo(() => alf.theme, [alf]);
-};
 
 export default definePlugin({
   name: "Core",
@@ -36,35 +21,7 @@ export default definePlugin({
         replace: "$&,$self.renderVersion()",
       },
     },
-    {
-      patch: {
-        match: re`\i=\(\?=\i.createContext({themeName:"light",theme:\i\)`,
-        replace: "$&$self.Alf=",
-      },
-    },
-    {
-      patch: {
-        match: re`function \(\i\)(\i)\.\{0,64\}{children:\i,emoji:\i,style:\i\.\*\?}=`,
-        replace: "$self.Text=$1;$&",
-      },
-    },
-    {
-      patch: {
-        match: re`function \(\i\)(\i)\.\{0,64\}children:\i,to:\i,action:\i,\.\*\?}=`,
-        replace: "$self.InlineLinkText=$1;$&",
-      },
-    },
   ],
-
-  set Alf(value: any) {
-    Alf = value;
-  },
-  set Text(value: any) {
-    Text = value;
-  },
-  set InlineLinkText(value: any) {
-    InlineLinkText = value;
-  },
 
   renderVersion: withErrorBoundary(() => {
     const t = useTheme();
