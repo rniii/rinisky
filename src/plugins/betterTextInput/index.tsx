@@ -30,11 +30,11 @@ interface TextInputProps {
 
   setRichText(value: RichText): void;
   onPressPublish(): void;
-  onSubmit(): void;
+  onPhotoPasted(uri: string): void;
   onFocus(): void;
 }
 
-const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish }: TextInputProps) => {
+const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish, onPhotoPasted }: TextInputProps) => {
   React.useEffect(() => {
     const style = document.createElement("style");
     document.head.append(style);
@@ -69,14 +69,25 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish }
   const onPaste = React.useCallback((event: ClipboardEvent) => {
     event.preventDefault();
 
-    const selection = getSelection();
-    if (!selection) return;
+    const { clipboardData } = event;
+    const media = [...clipboardData.items].find(i => i.kind === "file");
 
-    selection.deleteFromDocument();
-    selection.getRangeAt(0).insertNode(document.createTextNode(event.clipboardData.getData("text")));
-    selection.collapseToEnd();
+    if (media) {
+      if (!/^image\/|^video\//.test(media.type)) return;
 
-    placeholder.current!.hidden = !!input.current!.textContent;
+      const r = new FileReader();
+      r.readAsDataURL(media.getAsFile()!);
+      r.onloadend = () => onPhotoPasted(r.result as string);
+    } else {
+      const selection = getSelection();
+      if (!selection) return;
+
+      selection.deleteFromDocument();
+      selection.getRangeAt(0).insertNode(document.createTextNode(clipboardData.getData("text/plain")));
+      selection.collapseToEnd();
+
+      placeholder.current!.hidden = !!input.current!.textContent;
+    }
   }, []);
 
   return (
