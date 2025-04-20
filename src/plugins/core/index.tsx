@@ -28,7 +28,7 @@ export default definePlugin({
 
     return (
       <>
-        <Text style={{ ...t.atoms.text_contrast_medium, lineHeight: 1.3 }}>
+        <Text style={[t.atoms.text_contrast_medium, { lineHeight: 1.3 }]}>
           {bskyManifest.slug || "Bluesky"} {bskyManifest.version || ""}
           <br />
           rinisky{" "}

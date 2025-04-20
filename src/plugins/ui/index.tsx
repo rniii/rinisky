@@ -4,23 +4,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { type CSSProperties, type ReactNode } from "react";
+import React, { type ComponentType, type CSSProperties, type ReactNode } from "react";
+import { type TextProps as RNTextProps } from "react-native";
 
 import { definePlugin, re } from "api";
 
 let AlfContext: any;
-
-export let Text = ({ children, style }: { children: ReactNode; style: CSSProperties }): ReactNode => {
-  return <div style={style}>{children}</div>;
-};
-
-export let InlineLinkText = ({ children, to }: { children: ReactNode; to: string }) => {
-  return (
-    <a href={to} rel="noopener noreferrer" target="_blank">
-      {children}
-    </a>
-  );
-};
+export let a: Record<string, CSSProperties>;
+export let Text: ComponentType<RNTextProps & any> = ({ children }) => <div>{children}</div>;
+export let InlineLinkText: ComponentType<{ children?: ReactNode; to: string } & any> = ({ children, to }) => (
+  <a href={to} target="_blank" rel="noopener noreferrer">
+    {children}
+  </a>
+);
 
 export const useTheme = () => {
   const alf = React.useContext<any>(AlfContext);
@@ -31,6 +27,12 @@ export const useTheme = () => {
 export default definePlugin({
   name: "CoreUI",
   patches: [
+    {
+      patch: {
+        match: re`\i=\(\?={debug:{borderColor:"red"\)`,
+        replace: "$&$self.atoms=",
+      },
+    },
     {
       patch: {
         match: re`\i=\(\?=\i.createContext({themeName:"light",theme:\i\)`,
@@ -51,6 +53,9 @@ export default definePlugin({
     },
   ],
 
+  set atoms(value: any) {
+    a = value;
+  },
   set Alf(value: any) {
     AlfContext = value;
   },

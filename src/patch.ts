@@ -36,7 +36,7 @@ const log = (msg: string, ...args: any[]) =>
 
 log(`loading v${RSKY_VERSION}`);
 
-if (new URLSearchParams(window.location.search).get("vanilla")) {
+if (typeof URLSearchParams != "undefined" && new URLSearchParams(window.location.search).get("vanilla")) {
   throw "nevermind";
 }
 
