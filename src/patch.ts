@@ -124,4 +124,12 @@ const patchFactories = (factories: any) => {
       console.warn(e, { code });
     }
   }
+
+  for (const plugin of plugins) {
+    for (const patch of plugin.patches) {
+      if (!patch.applied) {
+        console.warn(`${plugin.name}: query failed: `, patch.query);
+      }
+    }
+  }
 };

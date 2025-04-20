@@ -13,7 +13,6 @@ import path from "path";
 import { createContext, runInContext } from "vm";
 
 const watch = process.argv.includes("--watch") || process.argv.includes("-w");
-const lint = process.argv.includes("--lint");
 
 const fullHash = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
 const gitHash = execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
@@ -75,13 +74,14 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
     {
       name: "lint-patches",
       async setup(build) {
-        if (!lint) return;
-
         // *var m = { ... }, c = {};* function require(id) {...}
         const WEBPACK_RE =
-          /var \w=\{\d+:.*?\},\w=\{\};(?=function \w\(\w\)\{var \w=\w\[\w\];if\(void 0!==\w\)return \w\.exports;)/;
+          /var (\w)=\{\d+:.*?\},\w=\{\};(?=function \w\(\w\)\{var \w=\w\[\w\];if\(void 0!==\w\)return \w\.exports;)/;
 
-        if (!existsSync("dist/bsky")) await import("./fetchSources");
+        if (!existsSync("dist/bsky")) {
+          console.log("Fetching bsky.app scripts -- update with `pnpm fetch-src`");
+          await import("./fetchSources.js");
+        }
 
         const main = await readFile("dist/bsky/main.js", "utf8");
         const [chunk, id] = main.match(WEBPACK_RE) ?? ['throw "fish";'];
@@ -100,14 +100,6 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
 
           runInContext(chunk, ctx);
           runInContext(`(() => {}).m = ${id}`, ctx);
-
-          for (const plugin of ctx.rsky.plugins) {
-            for (const patch of plugin.patches) {
-              if (!patch.applied) {
-                console.warn(`${plugin.name}: patch failed: `, patch.patch);
-              }
-            }
-          }
         });
       },
     },

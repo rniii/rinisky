@@ -13,5 +13,5 @@ const [, script] = html.match(MAIN_RE);
 const js = await fetch(script).then(r => r.text());
 
 await fs.rm("dist/bsky", { recursive: true, force: true });
-await fs.mkdir("dist/bsky");
+await fs.mkdir("dist/bsky", { recursive: true });
 await fs.writeFile("dist/bsky/main.js", js);

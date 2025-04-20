@@ -5,6 +5,7 @@
   "scripts": {
     "prepare": "git config --local core.hooksPath hooks",
     "build": "node scripts/build.js",
+    "fetch-src": "node scripts/fetchSources.js",
     "format": "dprint fmt",
     "lint": "dprint check && eslint"
   },
