@@ -4,13 +4,25 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { type ComponentType, type CSSProperties, type ReactNode } from "react";
+import { type ComponentType, type ReactNode, useContext } from "react";
 import { type TextProps as RNTextProps } from "react-native";
 
 import { definePlugin, re } from "api";
 
-let AlfContext: any;
-export let a: Record<string, CSSProperties>;
+let AlfContext: React.Context<{
+  themeName: "light" | "dim" | "dark";
+  theme: {
+    palette: Record<string, string>;
+    atoms: Record<string, React.CSSProperties>;
+  };
+  fonts: {
+    scale: "-2" | "-1" | "0" | "1" | "2";
+    scaleMultiplier: number;
+    family: "system" | "theme";
+  };
+}>;
+
+export let a: Record<string, React.CSSProperties>;
 export let Text: ComponentType<RNTextProps & any> = ({ children }) => <div>{children}</div>;
 export let InlineLinkText: ComponentType<{ children?: ReactNode; to: string } & any> = ({ children, to }) => (
   <a href={to} target="_blank" rel="noopener noreferrer">
@@ -18,11 +30,8 @@ export let InlineLinkText: ComponentType<{ children?: ReactNode; to: string } & 
   </a>
 );
 
-export const useTheme = () => {
-  const alf = React.useContext<any>(AlfContext);
-
-  return React.useMemo(() => alf.theme, [alf]);
-};
+export const useAlf = () => useContext(AlfContext);
+export const useTheme = () => useAlf().theme;
 
 export default definePlugin({
   required: true,
@@ -49,7 +58,7 @@ export default definePlugin({
     },
     {
       patch: {
-        match: re`function \(\i\)(\i)\.\{0,64\}children:\i,to:\i,action:\i,\.\*\?}=`,
+        match: re`function \(\i\)(\i)\.\{0,64\}{children:\i,to:\i,action:\i,\.\*\?}=`,
         replace: "$self.InlineLinkText=$1;$&",
       },
     },

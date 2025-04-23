@@ -5,15 +5,15 @@
  */
 
 import { RichText } from "@atproto/api";
-import type { ClipboardEvent, FormEvent, KeyboardEvent } from "react";
+import type { ClipboardEvent, CSSProperties, FormEvent, KeyboardEvent } from "react";
 import React from "react";
 import { StyleSheet } from "react-native";
 
 import { definePlugin, re } from "api";
 import { useTheme } from "plugins/ui";
-import { withErrorBoundary } from "utils";
+import { flatten, withErrorBoundary } from "utils";
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     minHeight: 140,
     padding: 5,
@@ -25,6 +25,7 @@ const style = StyleSheet.create({
 
 interface TextInputProps {
   placeholder: string;
+  style?: CSSProperties;
 
   setRichText(value: RichText): void;
   onPressPublish(): void;
@@ -32,7 +33,18 @@ interface TextInputProps {
   onFocus(): void;
 }
 
-const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish, onPhotoPasted }: TextInputProps) => {
+const TextInput = (
+  { placeholder: placeholderText, style, setRichText, onPressPublish, onPhotoPasted }: TextInputProps,
+) => {
+  React.useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `.ri-text-input [contenteditable]:focus{outline:0}`
+      + `.ri-text-input{word-break:break-word;white-space:pre-wrap}`;
+    document.head.append(style);
+
+    return () => style.remove();
+  }, []);
+
   const t = useTheme();
   const input = React.useRef<HTMLElement>(null);
   const placeholder = React.useRef<HTMLElement>(null);
@@ -40,15 +52,6 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish, 
   const triggerUpdate = React.useCallback(() => {
     placeholder.current!.hidden = !!input.current!.textContent;
   }, [input]);
-
-  React.useEffect(() => {
-    const style = document.createElement("style");
-    document.head.append(style);
-
-    style.sheet!.insertRule(`[contenteditable]:focus { outline: 0 }`);
-
-    return () => style.remove();
-  }, []);
 
   const focusInput = React.useCallback(() => {
     input.current?.focus();
@@ -94,13 +97,12 @@ const TextInput = ({ placeholder: placeholderText, setRichText, onPressPublish, 
   }, [onPhotoPasted, triggerUpdate]);
 
   return (
-    <div style={style.container} onClick={focusInput}>
-      <span
-        style={{ display: "inline-block", width: 0, color: t.atoms.text_contrast_medium, userSelect: "none" }}
-        ref={placeholder}
-      >
-        {placeholderText}
-      </span>
+    <div
+      className="ri-text-input"
+      style={flatten([styles.container, t.atoms.text, style])}
+      onClick={focusInput}
+      data-placeholder={placeholderText}
+    >
       <span onInput={onInput} onKeyDown={onKeyDown} onPaste={onPaste} contentEditable={true} ref={input} />
     </div>
   );
