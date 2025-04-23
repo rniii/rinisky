@@ -4,10 +4,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import "webpack/react";
+import "webpack/react-runtime";
 
 import type { ComponentClass, ErrorInfo, FunctionComponent, ReactNode } from "react";
 import React from "react";
+
+type Flatten<T> = T extends (infer U)[] ? Flatten<U> : T;
+
+export const flatten = <T,>(obj: T): Flatten<T> => Object.assign({}, ...[obj].flat(1 / 0));
 
 export const lazyComponent = <P extends object>(get: () => ComponentClass<P>) => {
   let CachedComponent: any;

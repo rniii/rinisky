@@ -13,6 +13,8 @@ import { withErrorBoundary } from "utils";
 const COMMIT_URL = (hash: string) => "https://github.com/rniii/rinisky/commit/" + hash;
 
 export default definePlugin({
+  required: true,
+
   name: "Core",
   patches: [
     {

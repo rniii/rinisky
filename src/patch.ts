@@ -25,6 +25,7 @@ import "webpack/react-runtime";
 import "~plugins";
 
 import { bskyManifest, plugins } from "api";
+import settings from "settings";
 import { _registerWreq } from "webpack";
 
 export { plugins };
@@ -76,6 +77,8 @@ Object.defineProperty(Function.prototype, "m", {
 });
 
 const patchFactories = (factories: any) => {
+  const enabledPlugins = plugins.filter(p => p.required || settings.plugins[p.name]?.enabled);
+
   for (const m in factories) {
     let code = Function.prototype.toString.call(factories[m]);
     const patchedBy = new Set<string>();
@@ -90,7 +93,7 @@ const patchFactories = (factories: any) => {
       Object.assign(bskyManifest, { version, name, slug });
     }
 
-    for (const plugin of plugins) {
+    for (const plugin of enabledPlugins) {
       for (const patch of plugin.patches) {
         if (isMain ? patch.query : !patch.query || patch.query.every(m => code.includes(m))) continue;
 
@@ -125,7 +128,7 @@ const patchFactories = (factories: any) => {
     }
   }
 
-  for (const plugin of plugins) {
+  for (const plugin of enabledPlugins) {
     for (const patch of plugin.patches) {
       if (!patch.applied) {
         console.warn(`${plugin.name}: query failed: `, patch.query);

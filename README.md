@@ -17,8 +17,6 @@ Open `dist/rsky.user.js` in your browser and install the userscript. done!!!!!!!
 
 ## things to do
 
-- [ ] Settings API, at least to toggle patches
-  - will bluesky store extra client settings? lol
 - [ ] Delete and re-draft button
   - actually just PR that to social-app, but will be fun to see if it is faster to develop
     things with this

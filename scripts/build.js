@@ -44,7 +44,7 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
     window: "unsafeWindow",
   },
   banner: { js: banner },
-  footer: { js: "window.rsky = rsky" },
+  footer: { js: "unsafeWindow.rsky = rsky" },
   sourcemap: "linked",
   jsxImportSource: "react",
   jsx: "automatic",
@@ -95,8 +95,13 @@ const options = /** @type {import("esbuild").BuildOptions} */ ({
             }),
           );
 
-          runInContext("window = unsafeWindow = globalThis", ctx);
-          runInContext(await readFile("dist/rsky.user.js", "utf8"), ctx);
+          runInContext("unsafeWindow = globalThis", ctx);
+          try {
+            runInContext(await readFile("dist/rsky.user.js", "utf8"), ctx);
+          } catch (err) {
+            console.error("Lint failed:", err);
+            return;
+          }
 
           runInContext(chunk, ctx);
           runInContext(`(() => {}).m = ${id}`, ctx);

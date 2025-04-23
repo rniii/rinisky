@@ -25,6 +25,8 @@ export const useTheme = () => {
 };
 
 export default definePlugin({
+  required: true,
+
   name: "CoreUI",
   patches: [
     {

@@ -72,6 +72,7 @@ export interface Patch extends PatchDef {
 }
 
 export interface Plugin extends PluginDef {
+  required?: boolean;
   id: number;
   patches: Patch[];
 }
