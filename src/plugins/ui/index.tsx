@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { type ComponentType, type ReactNode, useContext } from "react";
+import { type ComponentType, useContext } from "react";
 import { type TextProps as RNTextProps } from "react-native";
 
 import { definePlugin, re } from "api";
@@ -24,11 +24,6 @@ let AlfContext: React.Context<{
 
 export let a: Record<string, React.CSSProperties>;
 export let Text: ComponentType<RNTextProps & any> = ({ children }) => <div>{children}</div>;
-export let InlineLinkText: ComponentType<{ children?: ReactNode; to: string } & any> = ({ children, to }) => (
-  <a href={to} target="_blank" rel="noopener noreferrer">
-    {children}
-  </a>
-);
 
 export const useAlf = () => useContext(AlfContext);
 export const useTheme = () => useAlf().theme;
@@ -56,12 +51,6 @@ export default definePlugin({
         replace: "$self.Text=$1;$&",
       },
     },
-    {
-      patch: {
-        match: re`function \(\i\)(\i)\.\{0,64\}{children:\i,to:\i,action:\i,\.\*\?}=`,
-        replace: "$self.InlineLinkText=$1;$&",
-      },
-    },
   ],
 
   set atoms(value: any) {
@@ -72,8 +61,5 @@ export default definePlugin({
   },
   set Text(value: any) {
     Text = value;
-  },
-  set InlineLinkText(value: any) {
-    InlineLinkText = value;
   },
 });

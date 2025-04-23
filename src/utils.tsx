@@ -11,7 +11,7 @@ import React from "react";
 
 type Flatten<T> = T extends (infer U)[] ? Flatten<U> : T;
 
-export const flatten = <T,>(obj: T): Flatten<T> => Object.assign({}, ...[obj].flat(1 / 0));
+export const flatten = <T,>(...a: T[]): Flatten<T> => Object.assign({}, ...a.flat(1 / 0));
 
 export const lazyComponent = <P extends object>(get: () => ComponentClass<P>) => {
   let CachedComponent: any;
