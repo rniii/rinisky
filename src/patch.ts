@@ -25,15 +25,21 @@ import "webpack/react-runtime";
 import "~plugins";
 
 import { bskyManifest, plugins } from "api";
+import { countWarning } from "plugins/core";
 import settings from "settings";
 import { _registerWreq } from "webpack";
 
-export { plugins };
+export { plugins, settings };
 export * as api from "api";
 export * as webpack from "webpack";
 
 const log = (msg: string, ...args: any[]) =>
   console.log("%crsky |%c " + msg, "color:#0db", "color:currentColor", ...args);
+
+const warn: typeof console.warn = (...args) => {
+  countWarning();
+  console.warn(...args);
+};
 
 log(`loading v${RSKY_VERSION}`);
 
@@ -48,9 +54,8 @@ Object.defineProperty(Function.prototype, "m", {
     console.trace("read if cute");
 
     // @ts-expect-error
-    _registerWreq(window.wreq = this), delete Function.prototype.m;
-
-    patchFactories(this.m = value);
+    delete Function.prototype.m;
+    this.m = value;
 
     // ty vee
     // https://github.com/Vendicated/WebpackGrabber/blob/main/WebpackGrabber.user.js#L15-L33
@@ -73,12 +78,16 @@ Object.defineProperty(Function.prototype, "m", {
     cache && delete cache[cacheYoink];
 
     this.c = cache; // *exports your internal*
+
+    _registerWreq(this);
+    patchFactories(value);
+    startPlugins();
   },
 });
 
-const patchFactories = (factories: any) => {
-  const enabledPlugins = plugins.filter(p => p.required || settings.plugins[p.name]?.enabled);
+const enabledPlugins = plugins.filter(p => p.required || settings.plugins[p.name]?.enabled);
 
+const patchFactories = (factories: any) => {
   for (const m in factories) {
     let code = Function.prototype.toString.call(factories[m]);
     const patchedBy = new Set<string>();
@@ -98,7 +107,7 @@ const patchFactories = (factories: any) => {
         if (isMain ? patch.query : !patch.query || patch.query.every(m => code.includes(m))) continue;
 
         if (patch.applied) {
-          console.warn(`${plugin.name}: query is not unique: ${patch.query}`);
+          warn(`${plugin.name}: query is not unique: ${patch.query}`);
         }
         patch.applied = true;
         patchedBy.add(plugin.name);
@@ -107,7 +116,7 @@ const patchFactories = (factories: any) => {
           const oldCode = code;
           code = code.replace(repl.match, repl.replace as any);
           if (code === oldCode) {
-            console.warn(`${plugin.name}: patch failed: ${repl.match}`);
+            warn(`${plugin.name}: patch failed: ${repl.match}`);
           }
         }
       }
@@ -124,15 +133,21 @@ const patchFactories = (factories: any) => {
 
       log(`patched ${m}: ${[...patchedBy].join(", ")}`);
     } catch (e) {
-      console.warn(e, { code });
+      warn(e, { code });
     }
   }
 
   for (const plugin of enabledPlugins) {
     for (const patch of plugin.patches) {
       if (!patch.applied) {
-        console.warn(`${plugin.name}: query failed: `, patch.query);
+        warn(`${plugin.name}: query failed: `, patch.query);
       }
     }
+  }
+};
+
+const startPlugins = () => {
+  for (const plugin of enabledPlugins) {
+    plugin.start?.();
   }
 };

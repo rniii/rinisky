@@ -86,6 +86,8 @@ export const definePlugin = <T extends PluginDef>(plugin: T & Record<string, any
   // @ts-ignore
   plugin.id = plugins.length;
   plugin.patches ??= [];
+  // @ts-ignore
+  if (plugin.settings) plugin.settings._plugin = plugin.name;
 
   for (const patch of plugin.patches) {
     if (patch.query && !Array.isArray(patch.query)) patch.query = [patch.query];

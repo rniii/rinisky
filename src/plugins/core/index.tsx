@@ -4,11 +4,20 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import React, { type ReactNode } from "react";
+import React, { type ReactNode, useReducer } from "react";
 
 import { bskyManifest, definePlugin, re } from "api";
 import { Text, useTheme } from "plugins/ui";
+import settings from "settings";
 import { withErrorBoundary } from "utils";
+import { wreq } from "webpack";
+
+let warnings = 0;
+let warningCallback: () => void;
+
+export const countWarning = () => {
+  warnings++;
+};
 
 const COMMIT_URL = (hash: string) => "https://github.com/rniii/rinisky/commit/" + hash;
 const Link = ({ children, to }: { children?: ReactNode; to: string }) => {
@@ -49,7 +58,7 @@ export default definePlugin({
     // no sentry
     {
       patch: {
-        match: re`(0,\i.init)({enabled:!0,\.\{0,256\}dsn:\.\{0,256\}})`,
+        match: re`(0,\i.init)({enabled:!0,\.\{0,256\}dsn:\.\{0,512\}})`,
         replace: "",
       },
     },
@@ -74,16 +83,32 @@ export default definePlugin({
     },
   ],
 
+  start() {
+    // @ts-ignore some dev utilities
+    Object.assign(window, {
+      wreq,
+      enable(name: string) {
+        (settings.plugins[name] ??= {}).enabled = true;
+      },
+    });
+  },
+
   renderVersion: withErrorBoundary(() => {
     const t = useTheme();
+    const [, updateWarnings] = useReducer(() => {}, null);
+    warningCallback ??= updateWarnings;
 
     return (
       <>
         <Text style={[t.atoms.text_contrast_medium, { lineHeight: 1.3 }]}>
-          {bskyManifest.slug || "bluesky"} {bskyManifest.version || ""}
-          <br />
+          {bskyManifest.slug || "bluesky"} {bskyManifest.version || ""} <br />
           rinisky <Link to={COMMIT_URL(RSKY_COMMIT)}>{RSKY_VERSION}</Link>
         </Text>
+        {(warnings || null) && (
+          <Text style={[{ color: t.palette.negative_400, lineHeight: 1.3 }]}>
+            {warnings} console warning{warnings > 1 ? "s" : ""}
+          </Text>
+        )}
       </>
     );
   }),

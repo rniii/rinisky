@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 
 const plainSettings = Object.create(null) as {
   plugins: Record<string, { enabled: boolean } & any>;
@@ -33,6 +33,11 @@ const proxy = <T>(obj: T, callback: () => void) =>
     }) as T
     : obj;
 
+const withDefault = <T>(obj: T, get: (key: string) => any) =>
+  new Proxy(obj as any, {
+    get: (o, p) => p in o ? o[p] : get(p as any),
+  }) as T;
+
 const settings = proxy(plainSettings, saveSettings);
 
 export default settings;
@@ -57,6 +62,7 @@ export const defineSettings = <D extends Record<string, SettingDef>>(def: D): Pl
 > => {
   const obj = {
     _plugin: "",
+    _proxy: null as any,
     _forceUpdate: null as (() => void) | null,
 
     def,
@@ -64,12 +70,17 @@ export const defineSettings = <D extends Record<string, SettingDef>>(def: D): Pl
     get store() {
       if (!this._plugin) throw Error("plugin settings is uninitialized");
 
-      return proxy(settings.plugins[this._plugin], () => this._forceUpdate?.());
+      return this._proxy ??= withDefault(
+        proxy(settings.plugins[this._plugin], () => this._forceUpdate?.()),
+        key => def[key].default,
+      );
     },
 
     use() {
       const [, subscribe] = useReducer(() => {}, null);
-      this._forceUpdate ??= subscribe;
+      useEffect(() => {
+        this._forceUpdate = subscribe;
+      }, []);
 
       return this.store;
     },
