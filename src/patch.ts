@@ -33,6 +33,8 @@ export { plugins, settings };
 export * as api from "api";
 export * as webpack from "webpack";
 
+const isBrowser = "navigator" in window;
+
 const log = (msg: string, ...args: any[]) =>
   console.log("%crsky |%c " + msg, "color:#0db", "color:currentColor", ...args);
 
@@ -43,7 +45,7 @@ const warn: typeof console.warn = (...args) => {
 
 log(`loading v${RSKY_VERSION}`);
 
-if (typeof URLSearchParams != "undefined" && new URLSearchParams(window.location.search).get("vanilla")) {
+if (isBrowser && new URLSearchParams(window.location.search).get("vanilla")) {
   throw "nevermind";
 }
 
@@ -85,7 +87,7 @@ Object.defineProperty(Function.prototype, "m", {
   },
 });
 
-const enabledPlugins = plugins.filter(p => p.required || settings.plugins[p.name]?.enabled);
+const enabledPlugins = plugins.filter(p => p.required || settings.plugins[p.name]?.enabled || !isBrowser);
 
 const patchFactories = (factories: any) => {
   for (const m in factories) {

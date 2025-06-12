@@ -16,8 +16,13 @@ const loadSettings = () => {
   Object.assign(plainSettings, JSON.parse(localStorage.getItem("rsky.settings")!));
 };
 
+let settingsTimeout: ReturnType<typeof setTimeout>;
 const saveSettings = () => {
-  localStorage.setItem("rsky.settings", JSON.stringify(plainSettings));
+  clearTimeout(settingsTimeout);
+
+  settingsTimeout = setTimeout(() => {
+    localStorage.setItem("rsky.settings", JSON.stringify(plainSettings));
+  }, 300);
 };
 
 try {
