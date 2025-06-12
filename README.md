@@ -2,7 +2,7 @@
 
 Usage:
 
-```sh
+``` sh
 pnpm i
 pnpm build
 ```

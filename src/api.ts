@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import type { PluginSettings } from "settings";
+
 /**
  * Puts a function's result behind a lazy proxy.
  *
@@ -63,6 +65,7 @@ export interface PluginDef {
   name: string;
   patches?: PatchDef[];
   start?(): void;
+  settings?: PluginSettings<any>;
 }
 
 export interface Patch extends PatchDef {
